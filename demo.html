@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>lufylegend测试</title>
+		<style type="text/css">
+			*{margin: 0;padding: 0;}
+			#mydiv{position: absolute;top: 0;left: 0;width: 100%;height: 100%;overflow: hidden;}
+		</style>
+	</head>
+	<body>
+		<div id="mydiv"></div>
+	
+		<script src="js/lufylegend-1.9.0.js"></script>
+		<script type="text/javascript">
+			//初始化界面
+			LGlobal.align= LStageAlign.BOTTOM_MIDDLE;
+			LGlobal.stageScale= LStageScaleMode.SHOW_ALL;
+			LSystem.screen(LStage.FULL_SCREEN);
+			
+			var width= 640, height= 640/window.innerWidth * window.innerHeight;
+			LInit(20, "mydiv", width, height, main);
+			
+			var imgList;
+			function main(){
+				
+				var imgData = [
+					{name : "bg",path : "images/bg.jpg"},
+					{name : "feng",path : "images/feng.png"},
+					{name : "cup",path : "images/cup.png"},
+					{name : "coin",path : "images/coin.png"},
+					{name : "bomb",path : "images/bomb.png"},
+					{name : "time",path : "images/time.png"},
+					{name : "cup_coin",path : "images/cup_coin.png"},
+					{name : "pearl",path : "images/pearl.png"},
+					{name: "money",path: "images/money.png"}
+				];
+				
+				var backLayer= new LSprite();
+				addChild(backLayer)
+				
+				//loading界面设置
+				var loadLayer= new LoadingSample5();
+				backLayer.addChild(loadLayer);
+				
+				//load资源
+				LLoadManage.load(
+					imgData,
+					function(progress){
+						loadLayer.setProgress(progress)
+					},
+					function(result){
+						imgList= result;
+						backLayer.removeChild(loadLayer);
+						loadLayer= null;
+						start();
+					}
+				)
+				
+				function start(){
+					//加载舞台
+					LGlobal.backgroundColor= "#b1ebed"
+					var stageLayer= new LSprite();
+					addChild(stageLayer);
+					
+					//加载背景图
+					var background= new LSprite();
+					background.back= new LBitmap(new LBitmapData(imgList["bg"], 0, 0,  640, 960))
+					background.addChild(background.back);
+					stageLayer.addChild(background)
+					background.y=LGlobal.height-background.childList[0].height;
+					
+					//加载人并实现逐帧动画
+					//要先将元素加入到里面，再令它play才能正常运动
+					var person= new LSprite();
+					person.list= LGlobal.divideCoordinate(780, 969, 3, 3)
+					person.data= new LBitmapData(imgList["feng"], 0, 0, 260, 323)
+					person.man= new LAnimationTimeline(person.data, person.list)
+					
+					person.man.speed=5;
+					person.man.setLabel('go',0,0);
+					person.man.setLabel('happy',1,0);
+					person.man.setLabel('sad',2,0);
+					person.man.gotoAndPlay('happy')
+					person.man.stop()
+					
+					person.addChild(person.man)
+					stageLayer.addChild(person);
+					person.man.x = 350;
+					person.man.y = LGlobal.height-person.man.childList[0].height-40;
+					person.man.gotoAndPlay('happy')
+					person.man.play()
+					
+					//加个桶
+					var cup= new LSprite();
+					cup.back= new LBitmap(new LBitmapData(imgList["cup"], 0, 0,  157, 114))
+					cup.addChild(cup.back);
+					stageLayer.addChild(cup)
+					cup.x=120;
+					cup.y=LGlobal.height-cup.childList[0].height-25;
+					
+					//加金币
+					function Coin(){
+						base(this, LSprite, [])
+						this.a= -20;
+						this.xv=Math.random()>0.5 ? Math.random()*2.5 : -Math.random()*2.5;
+						this.init()
+					}
+					Coin.prototype.onframe=function(event){
+						var self= event.target;
+						self.x+= self.xv;
+						self.y+= self.a;
+						self.a+=0.5
+						if (self.y>= LGlobal.height-100) {
+							self.remove()
+						}
+						
+					}
+					Coin.prototype.init=function(){
+						var self= this;
+						self.coin= new LBitmap(new LBitmapData(imgList['coin'],0,0,46,43))
+						self.addChild(self.coin);
+						self.x=155
+						self.y=LGlobal.height-160;
+						self.addEventListener(LEvent.ENTER_FRAME,self.onframe);
+					}
+					var cointimer= setInterval(function(){
+						stageLayer.addChild(new Coin());
+					}, 500)
+					
+					
+				}
+				
+				
+			}
+		</script>
+		
+		
+	</body>
+</html>
